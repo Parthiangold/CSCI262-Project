@@ -47,6 +47,12 @@
                 <configuration>
                     <source>24</source>
                     <target>24</target>
+                    <archive>
+                        <manifest>
+                        <addClasspath>true</addClasspath>
+                        <mainClass>org.example.Main</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
 

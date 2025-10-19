@@ -1,8 +1,9 @@
 package org.example;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -11,6 +12,7 @@ public class PasswordEncryptor {
     private static final int IV_SIZE = 12;
     private static final int TAG_LENGTH = 128;
 
+    // Encrypts plaintext using the given key
     public static String encrypt(byte[] key, String plaintext) throws Exception {
         byte[] iv = new byte[IV_SIZE];
         SecureRandom random = new SecureRandom();
@@ -28,6 +30,7 @@ public class PasswordEncryptor {
         return Base64.getEncoder().encodeToString(combined);
     }
 
+    // Decrypts file contents using the given key
     public static String decrypt(byte[] key, String cipherTextBase64) throws Exception {
         byte[] decoded = Base64.getDecoder().decode(cipherTextBase64);
 
