@@ -1,5 +1,7 @@
 This is a password generator software that is designed to be used on your local pc via the CLI
- 
+
+If you want to mess around with it, delete the files in the resources folder and run the program to make a new master password.
+The current master password is 'asdfasdfasdf' 
 
  
  Notes to self: Did some digging on password generation and how it can be done in Java. There’s a module in the Java library called SecureRandom which is able to do this .
