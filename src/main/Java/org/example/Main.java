@@ -1,16 +1,63 @@
 package org.example;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        // Loads the json password storage and history files
-        PasswordStorage.loadPasswords();
-        PasswordHistory.loadHistory();
-
+    public static void main(String[] args) throws Exception {
         // Retrieve user input
         Scanner input = new Scanner(System.in);
+
+        // Checks if the master password file exists
+        File masterPW = new File("src/main/resources/master.txt");
+        if(!masterPW.isFile()) {
+            // If it doesn't exist, the user creates a master password
+            System.out.println("To use the Password Manager System, you will require a master password to access stored passwords.");
+            System.out.println("If you forget this password, you will be unable to recover stored data.");
+            
+            // User inputs created password, checks if it's above 12 characters
+            while (true) {
+                System.out.print("Create master password (MUST BE >= 12): ");
+                String pw = input.next();
+                if (pw.length() < 12) {
+                    System.out.println("Password length is too small. Try again.");       
+                }
+                else {
+                    // Writes the inputted password into a file as a hash
+                    masterPW.createNewFile();
+                    FileWriter fw = new FileWriter(masterPW);
+                    fw.write(PasswordHasher.hash(pw));
+                    fw.close();
+                    break;
+                }
+            }
+        }
+        // If it exists, the user is required to input in the master password in order to access the system
+        else {
+            // Opens file to retrieve the hash
+            Scanner fr = new Scanner(masterPW);
+            String hash = fr.next();
+            fr.close();
+            while (true) {
+                System.out.print("Enter master password: ");
+                String pw = input.next();
+                if (PasswordHasher.verify(hash, pw)) {
+                    System.out.println("Password accepted.");
+                    break;
+                }
+                else {
+                    System.out.println("Password incorrect. Try again.");
+                }
+            }
+        }
+
+        // Loads the json password storage and history files
+        Scanner fr = new Scanner(masterPW);
+        String hash = fr.next();
+        fr.close();
+        PasswordStorage.loadPasswords(hash);
+        PasswordHistory.loadHistory(hash);
 
         while (true) {
             // Main menu message
@@ -119,6 +166,7 @@ public class Main {
                             // Password is generated, displayed to the user, and the password entry is updated
                             pw = PasswordGenerator.generate(length, upper, lower, digits, symbols);
                             System.out.println("\nYour generated password is: " + pw);
+                            PasswordHistory.addOldPassword(e.getPassword()); // Old password added to history
                             e.setPassword(pw);
                             break;
                         }
@@ -140,24 +188,7 @@ public class Main {
                     username = input.next();
 
                     // Checks in the list if there is a record that has a matching site and username
-                    for (int i = 0; i < PasswordStorage.getPasswords().size(); i++) {
-                        PasswordEntry e = PasswordStorage.getPasswords().get(i);
-                        if (e.getSite().equals(site) && e.getUsername().equals(username)) {
-                            // If there is a match, then the program first removes the password from the storage list
-                            PasswordStorage.getPasswords().remove(i);
-
-                            // Then the password used in the former entry is hashed and moved to the history list
-                            String oldPW = e.getPassword();
-                            PasswordHistory.addOldPassword(oldPW);
-                            System.out.println("\nPassword successfuly removed from storage.");
-                            break;
-                        }
-
-                        // If there's no matching entry in the entire list, an error message is displayed
-                        else if (i == PasswordStorage.getPasswords().size() - 1) {
-                            System.out.println("\nThere is no password entry with the inputted site and username.");
-                        }
-                    }
+                    PasswordStorage.removePassword(site, username);
                     break;
 
 
@@ -174,7 +205,7 @@ public class Main {
                 // Option Q - Quit program
                 case "Q":
                     // Displays confirmation message, double checking with the user if they wish to quit
-                    System.out.println("Are you sure? Y/N");
+                    System.out.print("Are you sure? Y/N: ");
                     
                     while(true) {
                         // Input from user is prompted
@@ -197,7 +228,7 @@ public class Main {
                         }
                         // Any other input causes the program to reprompt the user to input either "Y" or "N" 
                         else {
-                            System.out.println("Invalid input. Are you sure? Y/N");
+                            System.out.print("Invalid input. Are you sure? Y/N: ");
                         }
                     }
                     break;
